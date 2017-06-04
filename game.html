@@ -1,0 +1,106 @@
+<html>
+<head>
+
+</head>
+<body>
+
+
+<!-- Canvas -->
+<canvas id="gameCanvas" height="600" width="800"></canvas>
+
+
+
+<script>
+    //variables here
+    var canvas;
+    var canvasContext;
+    var ballX = 20;
+    var ballSpeedX = 10;
+    var ballY = 20;
+    var ballSpeedY = 2;
+    var paddle1Y = 20;
+    var framePerSecond = 10 ;  // saniyede kac kere
+
+    const PADDLE_HEIGHT = 100;
+
+
+    function calculateMousePos(evt) {
+        var rect = canvas.getBoundingClientRect();
+        var root = document.documentElement;
+        var mouseX = evt.clientX - rect.left - root.scrollLeft;
+        var mouseY = evt.clientY - rect.top - root.scrollTop;
+        return {
+            x:mouseX,
+            y:mouseY
+        };
+
+    }
+
+
+
+window.onload = function () {
+    console.log("hello world");
+    canvas = document.getElementById('gameCanvas');
+    canvasContext = canvas.getContext('2d');
+    setInterval(function () {
+        moveEverything();
+        drawEverything();
+    },1000/framePerSecond);
+    canvas.addEventListener('mousemove',
+    function (evt) {
+        var mousePos = calculateMousePos(evt);
+        paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
+
+        
+    });
+
+
+
+    function moveEverything() {
+        console.log(paddle1Y);
+     ballX = ballX + ballSpeedX;
+     ballY = ballY + ballSpeedY;
+     if(ballX < 0){
+         ballSpeedX = -ballSpeedX;  // + ' nin - ' ile carpimi -
+     }
+     if (ballX > canvas.width){
+         ballSpeedX = -ballSpeedX; // - ' nin - ' ile carpimi +
+     }
+
+     if (ballY > canvas.height){
+         ballSpeedY = -ballSpeedY;
+     }
+     if (ballY < 0){
+         ballSpeedY = -ballSpeedY;
+     }
+    }
+    function drawEverything(){
+
+
+        console.log(ballX);
+        // backbone
+        colorRect(0,0,canvas.width,canvas.height,'black');
+        // this left gamers paddle
+        colorRect(0,paddle1Y,10,PADDLE_HEIGHT,'white');
+        // it is a ball :) game ball
+        colorCircle(ballX,ballY,8 , 'while')
+    }
+    function colorCircle(centerX , centerY , radius , drawColor) {
+        canvasContext.fillStyle = drawColor;
+        canvasContext.beginPath();
+        canvasContext.arc(centerX , centerY , radius , 0 , Math.PI * 2 , true); // circle function on Js   -- RADYAN === MERKEZ ACI  pi*2 ranyani tamamini donmesi icin
+        canvasContext.fill();
+
+    }
+    function colorRect(topX , topY , width , height , color) {
+        canvasContext.fillStyle = color;
+        canvasContext.fillRect(topX,topY,width,height);
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
