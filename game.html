@@ -15,13 +15,22 @@
     var canvas;
     var canvasContext;
     var ballX = 20;
-    var ballSpeedX = 10;
+    var ballSpeedX = 30;
     var ballY = 20;
-    var ballSpeedY = 2;
-    var paddle1Y = 20;
+    var ballSpeedY = 6;
+    var paddle1Y = 250;
+    var paddle2Y = 250;
     var framePerSecond = 10 ;  // saniyede kac kere
+    var paddle2YCenter;
+    var showingWinScreen = false;
+
+
+    var player1Score = 0;
+    var player2Score = 0;
+    const WINNING_SCORE = 3;
 
     const PADDLE_HEIGHT = 100;
+    const PADDLE_THICKNESS = 10;  // paddle kalinligi
 
 
     function calculateMousePos(evt) {
@@ -35,36 +44,87 @@
         };
 
     }
+    function handleMouseClick(evt) {  // showing win screen true oldugu durumda skorlari sifirlar ve winScreen i false ederek oyunu baslatir;
+        if(showingWinScreen){
+            player1Score = 0;
+            player2Score = 0;
+            showingWinScreen = false;
+        }
+    }
 
 
 
 window.onload = function () {
-    console.log("hello world");
     canvas = document.getElementById('gameCanvas');
     canvasContext = canvas.getContext('2d');
     setInterval(function () {
         moveEverything();
         drawEverything();
     },1000/framePerSecond);
+    canvas.addEventListener('mousedown' , handleMouseClick);
+
     canvas.addEventListener('mousemove',
     function (evt) {
         var mousePos = calculateMousePos(evt);
         paddle1Y = mousePos.y - (PADDLE_HEIGHT / 2);
+         });
+    function ballReset() {
+        if (player1Score >= WINNING_SCORE || player2Score >= WINNING_SCORE){
 
-        
-    });
+            showingWinScreen = true;
+        }
+        ballSpeedX =  -ballSpeedX;
+        ballSpeedY = -ballSpeedY;
+        ballX = canvas.width / 2;
+        ballY = canvas.height / 2;
+    }
 
 
+    function computerMovement() {
+        paddle2YCenter = paddle2Y + (PADDLE_HEIGHT / 2);
+
+        if (paddle2YCenter < ballY - 35){
+            paddle2Y += 10 ;
+        }else if (paddle2YCenter > ballY +35){
+            paddle2Y -= 10;
+        }
+
+
+    }
 
     function moveEverything() {
-        console.log(paddle1Y);
-     ballX = ballX + ballSpeedX;
-     ballY = ballY + ballSpeedY;
-     if(ballX < 0){
-         ballSpeedX = -ballSpeedX;  // + ' nin - ' ile carpimi -
-     }
+        if(showingWinScreen) {
+            return;
+        }
+        computerMovement();
+     ballX +=  ballSpeedX;
+     ballY +=  ballSpeedY;
+
+     if (ballX <= 0) // eger top x ekseninde 0 a geldiyse {
+         if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) { // topun y ekseninde pozisyonu buyukse paddle1 in baslangicindan  ve topun pozisyonu paddle1 in pozisyonu + uzunlugundan kucukse
+            ballSpeedX = -ballSpeedX; // hizi terse carp
+            var deltaY = ballY - (paddle1Y + (PADDLE_HEIGHT / 2)); // topun dikey pozisyonu - (paddle dikey pozisyonu + paddle boyu)
+             ballSpeedY = deltaY * 0.35; //topun dikey hareketi deltaY * 0.35 -- dokundugu noktanin uzakligina gore egimi artacak
+         } else {
+            player2Score ++;  // must be BEFORE ballReset();
+            ballReset(); //sayi  veya sifirla
+
+         }
+
+
+
+
      if (ballX > canvas.width){
-         ballSpeedX = -ballSpeedX; // - ' nin - ' ile carpimi +
+         if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) { // topun y ekseninde pozisyonu buyukse paddle1 in baslangicindan  ve topun pozisyonu paddle1 in pozisyonu + uzunlugundan kucukse
+             ballSpeedX = -ballSpeedX; // hizi terse carp
+             var deltaY = ballY - (paddle2Y - (PADDLE_HEIGHT / 2));
+             ballSpeedY = deltaY * 0.35;
+         } else {
+             player1Score++; // must be BEFORE ballReset();
+             ballReset(); //sayi  veya sifirla
+
+
+         }
      }
 
      if (ballY > canvas.height){
@@ -74,16 +134,46 @@ window.onload = function () {
          ballSpeedY = -ballSpeedY;
      }
     }
+
+    function drawNet() {
+        for(var i = 0; i <= canvas.height; i+=40){
+        colorRect(canvas.width/2-1,i,4,20,'white');
+        }
+    }
     function drawEverything(){
 
 
-        console.log(ballX);
+
         // backbone
         colorRect(0,0,canvas.width,canvas.height,'black');
-        // this left gamers paddle
-        colorRect(0,paddle1Y,10,PADDLE_HEIGHT,'white');
+        if(showingWinScreen) {
+            canvasContext.fillStyle = 'white';
+
+            if (player1Score >= WINNING_SCORE){
+                canvasContext.fillText ("Left Player Won!" , 350 , 200);
+                console.log("weq")
+            }else if(player2Score >= WINNING_SCORE){
+                canvasContext.fillText  ("Computer Won!" ,350 , 200 );
+                console.log("weq")
+            }
+
+            canvasContext.fillText ("click to continue", 350, 500);
+            return;
+        }
+
+        drawNet();
+
+
+        // this left gamer paddle
+        colorRect(0,paddle1Y,PADDLE_THICKNESS,PADDLE_HEIGHT,'white');
+        // it is right computer paddle
+        colorRect(canvas.width - PADDLE_THICKNESS,paddle2Y,PADDLE_THICKNESS,PADDLE_HEIGHT,'white');
+
         // it is a ball :) game ball
-        colorCircle(ballX,ballY,8 , 'while')
+        colorCircle(ballX,ballY,8 , 'while');
+
+        canvasContext.fillText('Player ' + player1Score,100,100);
+        canvasContext.fillText('Computer ' + player2Score ,canvas.width - 150, 100);
     }
     function colorCircle(centerX , centerY , radius , drawColor) {
         canvasContext.fillStyle = drawColor;
